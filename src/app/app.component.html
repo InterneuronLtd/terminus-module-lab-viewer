@@ -1,0 +1,467 @@
+<!--BEGIN LICENSE BLOCK--> 
+<!--Interneuron Terminus
+
+Copyright(C) 2021  Interneuron CIC
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.If not, see<http://www.gnu.org/licenses/>. -->
+<!--END LICENSE BLOCK--> 
+
+
+<div class="container-fluid">
+  <div class="col-md-1"></div>
+  <div class="card">
+    <div class="card-header">
+      <div class="row">
+        <div class="col-md-10">
+          <h3>Results and Reports</h3>
+        </div>
+        <div class="col-md-2">
+          <div class="form-inline d-flex justify-content-center md-form form-sm mt-0">
+            <fa-icon [icon]="icons.searchIcon"></fa-icon>
+            <input class="form-control form-control-sm ml-3 w-75" type="text" placeholder="Search" aria-label="Search" 
+              [(ngModel)]="filter"/>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <a href="#" (click)="onSelectAll()">Select All</a> | <a href="#" (click)="onSelectNone()">Clear All</a>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-2" *ngFor="let option of orderCategory">
+          <input type="checkbox" name="options" [id]="option.category" value="{{ option.category }}"
+            [(ngModel)]="option.checked" (change)="onCheckboxChanged()" [disabled]="option.disabled" />
+          <label [for]="option.category" class="ml-1">{{ option.category }} ({{option.dataCount}})</label>
+        </div>
+      </div>
+      <div class="row">
+        <div toastContainer></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-text">
+        <table class="table table-bordered table-sm">
+          <thead>
+            <tr class="tableizer-firstrow">
+              <th>
+                Result Reported Date & Time 
+                <a href="#" (click)="sortOrder('datetimeoftransaction')" class="float-right">                  
+                  <fa-icon [icon]="icons.sortIcon"></fa-icon>
+                </a>
+              </th>
+              <th>Order Description 
+                <a href="#" (click)="sortOrder('universalservicetext')" class="float-right">
+                  <fa-icon [icon]="icons.sortIcon"></fa-icon>
+                </a>
+              </th>
+              <th>Order Category 
+                <a href="#" (click)="sortOrder('category')" class="float-right">
+                  <fa-icon [icon]="icons.sortIcon"></fa-icon>
+                </a>
+              </th>
+              <th>Order Status 
+                <a href="#" (click)="sortOrder('resultstatus')" class="float-right pointer">
+                  <fa-icon [icon]="icons.sortIcon"></fa-icon>
+                </a>
+              </th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody *ngIf="filteredOrders.length > 0">
+            <tr *ngFor="let order of filteredOrders | stringFilter: filter">
+              <td>{{ order.datetimeoftransaction | date: 'dd/MM/yyyy HH:mm:ss' }}</td>
+              <td>{{ order.universalservicetext }}</td>
+              <td>{{ order.category }}</td>
+              <td>
+                {{ order.resultstatus }}
+                <span class="float-right">
+                  <a href="#" (click)="onTotalViewsClicked(order)">
+                    <span class="badge badge-dark pointer">
+                      <fa-icon [icon]="icons.glassesIcon"></fa-icon> {{ order.totalviewcount }}
+                    </span>
+                  </a>
+                  <span class="badge badge-success ml-1" *ngIf="order.timeago != null">
+                    <fa-icon [icon]="icons.historyIcon"></fa-icon> {{ order.timeago }}
+                  </span>
+                  <span class="badge badge-warning ml-1" *ngIf="order.maxlastvieweddatetime == null">
+                    <fa-icon [icon]="icons.starIcon"></fa-icon>
+                  </span>
+                  <span class="badge badge-info ml-1"
+                    *ngIf="order.maxlastvieweddatetime != null && order.maxlastvieweddatetime < order.statuschangedatetime">
+                    <fa-icon [icon]="icons.userClockIcon"></fa-icon>
+                  </span>
+                  <span class="badge badge-info ml-1"
+                    *ngIf="order.maxlastvieweddatetime != null && order.maxlastvieweddatetime >= order.statuschangedatetime">
+                    <fa-icon [icon]="icons.userCheckIcon"></fa-icon>
+                  </span>
+                  <span class="badge badge-danger ml-1" *ngIf="order.abnormalflagcount > 0">
+                    <fa-icon [icon]="icons.exclamationTriangleIcon"></fa-icon> {{ order.abnormalflagcount }}
+                  </span>
+                </span>
+              </td>
+              <td><a href="#" class="float-right" (click)="onViewOrder(order)">View</a></td>
+            </tr>
+          </tbody>
+          <tbody *ngIf="filteredOrders.length == 0">
+            <tr>
+              <td colspan="5">
+                <div class="d-flex justify-content-center">No matching record</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="d-flex justify-content-center">
+          <button class="btn btn-secondary" (click)="onLoadMore()" *ngIf="totalOrderCount >= noOfRecordsToLoad">Load More</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!--Modal code-->
+<!-- Order Detail Modal-->
+<div class="modal fade" bsModal #orderDetailModal="bs-modal" tabindex="-1" role="dialog" aria-labelledby="orderDetailModalLabel">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="orderDetailModalLabel" class="modal-title pull-left"></h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="onCloseModal()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" #pdfBodyDiv>
+        <div class="d-flex justify-content-center" *ngIf="isLoading">
+          <div class="spinner-grow spinner-grow-sm" role="status">
+              <span class="sr-only">Loading...</span>
+          </div>
+          <div class="spinner-grow spinner-grow-sm" role="status">
+              <span class="sr-only">Loading...</span>
+          </div>
+          <div class="spinner-grow spinner-grow-sm" role="status">
+              <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+        <div class="container-fluid" style="-webkit-print-color-adjust:exact;" *ngIf="!isLoading">
+          <div class="card">
+            <div class="card-header">
+              <div class="row">
+                <div class="col-md-6">
+                  <h1>{{ selectedOrder.universalservicetext }}</h1>
+                </div>
+                <div class="col-md-2">
+                  <button class="btn btn-outline-danger btn-sm d-print-none" (click)="onViewAsPDF()">
+                    <fa-icon [icon]="icons.filePdfIcon"></fa-icon> Export
+                  </button>
+                </div>
+                <div class="col-md-4" style="text-align: right;">
+                  <h3>{{ selectedOrder.resultstatus }}</h3>
+                  <span class="float-right" *ngIf="!isPrinting">
+                    <a href="#" (click)="onTotalViewsClicked(selectedOrder)">
+                      <span class="badge badge-dark d-print-none">
+                        <fa-icon [icon]="icons.glassesIcon"></fa-icon> {{ selectedOrder.totalviewcount }}
+                      </span>
+                    </a>
+                    <span class="badge badge-success ml-1 d-print-none">
+                      <fa-icon [icon]="icons.historyIcon"></fa-icon> {{ selectedOrder.timeago }}
+                    </span>
+                    <span class="badge badge-info ml-1 d-print-none">
+                      <fa-icon [icon]="icons.userCheckIcon"></fa-icon>
+                    </span>
+                    <span class="badge badge-danger ml-1 d-print-none" *ngIf="selectedOrder.abnormalflagcount > 0">
+                      <fa-icon [icon]="icons.exclamationTriangleIcon"></fa-icon>
+                      {{ selectedOrder.abnormalflagcount }}
+                    </span>
+                  </span>
+                </div>
+              </div>
+              <br />
+              <div class="row">
+                <div class="col-md-6">
+                  <strong>Patient: </strong> {{ modalPatientBannerData.fullname }} (Hospital Number:
+                  {{ modalPatientBannerData.hospitalnumber }}) <br />
+                  <strong>DoB: </strong> {{ modalPatientBannerData.dateofbirth | date: 'dd/MM/yyyy' }}
+                </div>
+                <div class="col-md-6">
+                  <strong>Lab Reference Number: </strong> {{ selectedOrder.fillerordernumber }} <br />
+                  <strong>Last Updated: </strong>
+                  {{ selectedOrder.datetimeoftransaction | date: 'dd/MM/yyyy HH:mm' }} <br />
+                </div>
+              </div>
+              <br />
+              <div class="row" *ngIf="selectedOrder.ordertype == 'Result'">
+                <div class="col-md-5 bg-white text-dark">
+                  <h6>Order</h6>
+                  <table class="table table-borderless table-sm">
+                    <thead class="bg-dark text-white">
+                      <tr [ngClass]="isPrinting ? 'text-dark' : 'text-white'">
+                        <th>Order Number</th>
+                        <th>Result Reported Date</th>
+                        <th>Ordered By</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          {{ selectedOrder.placerordernumber }}
+                        </td>
+                        <td>
+                          {{ selectedOrder.statuschangedatetime | date: 'dd/MM/yyyy HH:mm' }}
+                        </td>
+                        <td>{{ selectedOrder.orderingprovider }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="col-md-1">&nbsp;</div>
+                <div class="col-md-6 bg-white text-dark">
+                  <h6>Sample</h6>
+                  <table class="table table-borderless table-sm">
+                    <thead class="bg-dark text-white">
+                      <tr [ngClass]="isPrinting ? 'text-dark' : 'text-white'">
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Collected</th>
+                        <th>Received</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          {{ selectedOrder.specimentypecode }}
+                        </td>
+                        <td>
+                          {{ selectedOrder.specimentypetext }}
+                        </td>
+                        <td>{{ selectedOrder.observationdatetime | date: 'dd/MM/yyyy HH:mm' }}</td>
+                        <td>{{ selectedOrder.specimendatetime | date: 'dd/MM/yyyy HH:mm' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="card-text">
+                <table class="table table-sm" *ngIf="selectedOrder.ordertype == 'Result'">
+                  <thead class="bg-dark text-white">
+                    <tr [ngClass]="isPrinting ? 'text-dark' : 'text-white'">
+                      <th>Set ID</th>
+                      <th>Observation</th>
+                      <th>Value</th>
+                      <th>Units</th>
+                      <th>Reference Range</th>
+                      <th>Abnormal Flag</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody *ngFor="let result of filteredOrderResultData; let i = index;">
+                    <tr>
+                      <td>
+                        <div
+                          [ngClass]="(result.abnormalflag == 'H' || result.abnormalflag == 'HH') ? 'text-danger font-weight-bold' : ((result.abnormalflag == 'L' || result.abnormalflag == 'LL') ? 'text-info font-weight-bold' :  'text-dark')">
+                          <strong>{{ result.setid }}</strong></div>
+                      </td>
+                      <td class="col-xs-8 text-wrap">
+                        <div
+                        [ngClass]="(result.abnormalflag == 'H' || result.abnormalflag == 'HH') ? 'text-danger font-weight-bold' : ((result.abnormalflag == 'L' || result.abnormalflag == 'LL') ? 'text-info font-weight-bold' :  'text-dark')">
+                          {{ result.observationidentifiertext }}</div>
+                      </td>
+                      <td class="col-xs-8 text-wrap">
+                        <div
+                        [ngClass]="(result.abnormalflag == 'H' || result.abnormalflag == 'HH') ? 'text-danger font-weight-bold' : ((result.abnormalflag == 'L' || result.abnormalflag == 'LL') ? 'text-info font-weight-bold' :  'text-dark')">
+                          {{ result.observationvalue }}</div>
+                      </td>
+                      <td class="col-xs-8 text-wrap">
+                        <div
+                        [ngClass]="(result.abnormalflag == 'H' || result.abnormalflag == 'HH') ? 'text-danger font-weight-bold' : ((result.abnormalflag == 'L' || result.abnormalflag == 'LL') ? 'text-info font-weight-bold' :  'text-dark')">
+                          {{ result.unitstext }}</div>
+                      </td>
+                      <td class="col-xs-8 text-wrap">
+                        <div
+                        [ngClass]="(result.abnormalflag == 'H' || result.abnormalflag == 'HH') ? 'text-danger font-weight-bold' : ((result.abnormalflag == 'L' || result.abnormalflag == 'LL') ? 'text-info font-weight-bold' :  'text-dark')">
+                          {{ result.referencerange }}</div>
+                      </td>
+                      <td class="col-xs-8 text-wrap">
+                        <div
+                        [ngClass]="(result.abnormalflag == 'H' || result.abnormalflag == 'HH') ? 'text-danger font-weight-bold' : ((result.abnormalflag == 'L' || result.abnormalflag == 'LL') ? 'text-info font-weight-bold' :  'text-dark')">
+                          {{ result.abnormalflag }}</div>
+                      </td>
+                      <td>
+                        <a href="#" (click)="onResultHistoryClicked(result)"
+                          *ngIf="!isPrinting && result.observationvaluenumeric != null" class="d-print-none">
+                          <fa-icon [icon]="icons.chartBarIcon" class="float-right"></fa-icon>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr *ngIf="result.resultnote && result.resultnote.length > 0">
+                      <td colspan="7">
+                        <div [innerHTML]="result.resultnote"></div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div [innerHTML]="selectedReportText" *ngIf="selectedOrder.ordertype == 'Report'"></div>
+                <div *ngIf="selectedOrderNote.length > 0">
+                  <h5>Order Notes</h5>
+                  {{ selectedOrderNote }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div style="color: black" *ngIf="!isDocumentDownloaded">
+          <!-- <span >Loading</span> -->
+          <div class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></div>
+          <div class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></div>
+          <div class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></div>
+        </div>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="onCloseModal()">Close</button>
+        <!--<button class="btn btn-primary" (click)="onViewAsPDF()">View as PDF</button>-->
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Result history modal -->
+<div class="modal fade" bsModal #resultHistoryModal="bs-modal" tabindex="-1" role="dialog" aria-labelledby="resultHistoryModalLabel"
+  data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="resultHistoryModalLabel" class="modal-title pull-left">Result History</h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="resultHistoryModal.hide()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex justify-content-center" *ngIf="isLoading">
+          <div class="spinner-grow spinner-grow-sm" role="status">
+              <span class="sr-only">Loading...</span>
+          </div>
+          <div class="spinner-grow spinner-grow-sm" role="status">
+              <span class="sr-only">Loading...</span>
+          </div>
+          <div class="spinner-grow spinner-grow-sm" role="status">
+              <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+        <div class="container-fluid" *ngIf="!isLoading">
+          <div class="card">
+            <div class="card-header">
+              <div class="row">
+                <div class="col-md-9">
+                  <h3 class="text-dark"><fa-icon [icon]="icons.chartBarIcon"></fa-icon> {{ selectedResult.observationidentifiertext }}</h3>
+                </div>
+                <div class="col-md-3" style="text-align: right;">
+                  Results to chart: <select [(ngModel)]="selectedNoOfResults" (change)="onResultsToChartChange()">
+                    <option [value]="10">10</option>
+                    <option [value]="15">15</option>
+                    <option [value]="20">20</option>
+                    <option [value]="25">25</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <canvas baseChart width="800" height="450" [datasets]="chartData.datasets"
+                [labels]="chartData.labels" [options]="chartData.options" [chartType]="chartData.type"
+                *ngIf="isChartReady"></canvas>
+              <br />
+              <h4>Results</h4>
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Result Date</th>
+                    <th>Observation</th>
+                    <th>Value</th>
+                    <th>Units</th>
+                    <th>Reference Range</th>
+                    <th>Abnormal Flag</th>
+                    <th>Result Note</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let result of resultHistory">
+                    <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))">{{ result.observationdatetime | date: 'dd/MM/yyyy HH:mm' }}</td>
+                    <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))">{{ result.observationidentifiertext }}</td>
+                    <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))">{{ result.observationvalue }}</td>
+                    <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))">{{ result.unitstext }}</td>
+                    <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))">{{ result.referencerangelow }} - {{ result.referencerangehigh }}</td>
+                    <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))">{{ result.abnormalflag }}</td>
+                    <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Order audit modal -->
+<div class="modal fade" bsModal #orderViewsModal="bs-modal" tabindex="-1" role="dialog" aria-labelledby="orderViewsModalTitle"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body bg-dark">
+        <div class="d-flex justify-content-center" *ngIf="isLoading">
+          <div class="spinner-grow spinner-grow-sm" role="status">
+              <span class="sr-only">Loading...</span>
+          </div>
+          <div class="spinner-grow spinner-grow-sm" role="status">
+              <span class="sr-only">Loading...</span>
+          </div>
+          <div class="spinner-grow spinner-grow-sm" role="status">
+              <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+        <div class="container-fluid" *ngIf="!isLoading">
+          <div class="row">
+            <div class="col-md alert bg-dark text-white">
+              <h3><i class="fas fa-glasses"></i> View History</h3>
+              <div style="text-align: right; margin-top: -35px;">
+                Views: {{ selectedOrder.totalviewcount }}
+              </div>
+              <br />
+              <table class="table table-borderless text-white">
+                <tr>
+                  <td>{{ selectedOrder.observationdatetime }}</td>
+                  <td>{{ selectedOrder.universalservicetext }}</td>
+                  <td>{{ selectedOrder.ordertype }}</td>
+                </tr>
+              </table>
+              <hr />
+              <table class="table text-white">
+                <tbody>
+                  <tr *ngFor="let audit of orderAudits">
+                    <td>
+                      {{ audit.username }} (Last viewed: {{ audit.lastvieweddatetime | date: 'dd MMM yyyy HH:mm' }})
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-dark">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="orderViewsModal.hide()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

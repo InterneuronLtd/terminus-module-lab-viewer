@@ -1,0 +1,45 @@
+{
+  "apiServiceEndpoints": {
+    "patientOrderCountUrl": "SYNAPSE_DYNAMIC_URI/GetBaseViewListByAttribute/bv_core_personordercount?synapseattributename=person_id&attributevalue=",
+    "patientOrdersUrl": "SYNAPSE_DYNAMIC_URI/GetBaseViewListByPost/bv_core_personorder",
+    "patientOrderResultsUrl": "SYNAPSE_DYNAMIC_URI/GetBaseViewListByAttribute/bv_core_orderresult?synapseattributename=order_id&attributevalue=",
+    "patientOrderNotesUrl": "SYNAPSE_DYNAMIC_URI/GetBaseViewListByAttribute/bv_core_ordernote?synapseattributename=order_id&attributevalue=",
+    "orderCategoryUrl": "SYNAPSE_DYNAMIC_URI/GetBaseViewList/bv_core_ordercategory",
+    "personDataForModalBannerUrl": "SYNAPSE_DYNAMIC_URI/GetBaseViewListByAttribute/patientbanner_modalpatientbanner?synapseattributename=person_id&attributevalue=",
+    "orderViewsUrl": "SYNAPSE_DYNAMIC_URI/GetListByAttribute/core/orderaudit/order_id/",
+    "postOrderAuditUrl": "SYNAPSE_DYNAMIC_URI/PostObject/core/orderaudit/",
+    "resultHistoryUrl": "SYNAPSE_DYNAMIC_URI/GetListByPost/core/result/",
+    "maxLastViewedOrderAuditUrl": "SYNAPSE_DYNAMIC_URI/GetBaseViewListByPost/bv_core_maxlastviewedorderaudit",
+    "generatePdfDocumentUrl": ""
+  },
+  "siteSettings": {
+    "pdfCssUrl": "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css",
+    "noOfRecordsToDisplay": 5,
+    "lineChartSettings": {
+      "lowReferenceRangeSettings": {
+        "label": "Low reference range",
+        "borderColor": "#b0d2d9",
+        "fill": false
+      },
+      "highReferenceRangeSettings": {
+        "label": "High Reference Range",
+        "borderColor": "#e8c3b9",
+        "fill": false
+      },
+      "observationRangeSettings": {
+        "borderColor": "#2b2f30",
+        "pointStyle": "crossRot",
+        "pointRadius": 6,
+        "fill": false
+      },
+      "chartOptions": {
+        "title": {
+          "fontColor": "#806370"
+        },
+        "legend": {
+          "position": "right"
+        }
+      }
+    }
+  }
+}
