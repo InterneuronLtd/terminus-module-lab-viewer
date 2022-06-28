@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2021  Interneuron CIC
+//Copyright(C) 2022  Interneuron CIC
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@ import { IconsService } from 'src/services/icons.service';
 import { saveAs } from 'file-saver';
 import { CoreOrder } from './models/entities/core-order.model';
 import { AppService } from 'src/services/app.service';
-import { isArray } from 'util';
 import { CoreOrderAudit } from './models/entities/core-order-audit.model';
 import { v4 as uuidv4 } from 'uuid';
 import { CoreResult } from './models/entities/core-result.model';
@@ -135,7 +134,7 @@ export class AppComponent implements OnInit, OnDestroy {
     if (!this.appService.loggedInUserName) {
       decodedToken = this.appService.decodeAccessToken(this.appService.apiServiceReference.authService.user.access_token);
       if (decodedToken != null) {
-        this.appService.loggedInUserName = decodedToken.name ? (isArray(decodedToken.name) ? decodedToken.name[0] : decodedToken.name) : decodedToken.IPUId;
+        this.appService.loggedInUserName = decodedToken.name ? (Array.isArray(decodedToken.name) ? decodedToken.name[0] : decodedToken.name) : decodedToken.IPUId;
         this.appService.loggedInUserId = decodedToken.IPUId;
       }
     }
@@ -161,6 +160,15 @@ export class AppComponent implements OnInit, OnDestroy {
     // this.filteredOrders = this.allOrders;
     // this.orderResultData = [];
     // this.orderCategory = TestData.orderCategory;
+    // var value: any = {};
+    // value.contexts = JSON.parse("[{\"person_id\": \"774c605e-c2c6-478d-90e6-0c1230b3b223\"}]");
+    // value.personId = "774c605e-c2c6-478d-90e6-0c1230b3b223"; //George Reed
+    // value.apiService = null;
+    // this.appService.personId = "774c605e-c2c6-478d-90e6-0c1230b3b223";
+    // this.appService.loggedInUserId = "gautam@interneuron.org";
+    // this.appService.contexts = value.contexts;
+    // this.initAppService(value);
+
     this.notificationService.setOverlayContainer(this.toastContainer);
   }
 
@@ -554,13 +562,15 @@ export class AppComponent implements OnInit, OnDestroy {
     this.chartData.type = "line";
 
     this.chartData.options = {
-      title: {
-        display: true,
-        text: this.selectedResult.observationidentifiertext,
-        fontColor: "#806370"
-      },
-      legend: {
-        position: "right"
+      plugins:{
+        title: {
+          display: true,
+          text: this.selectedResult.observationidentifiertext,
+          color: "#806370"
+        },
+        legend: {
+          position: "right"
+        }
       }
     };
 
