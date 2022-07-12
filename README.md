@@ -1,5 +1,5 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+# Terminus Module Lab Viewer v1.3
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13. 
 
 # Getting Started
 TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
