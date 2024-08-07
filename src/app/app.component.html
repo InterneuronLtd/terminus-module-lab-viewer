@@ -1,7 +1,7 @@
 <!--BEGIN LICENSE BLOCK--> 
 <!--Interneuron Terminus
 
-Copyright(C) 2023  Interneuron Holdings Ltd
+Copyright(C) 2024  Interneuron Limited
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -377,9 +377,19 @@ along with this program.If not, see<http://www.gnu.org/licenses/>. -->
               </div>
             </div>
             <div class="card-body">
-              <canvas baseChart width="800" height="450" [datasets]="chartData.datasets"
-                [labels]="chartData.labels" [options]="chartData.options" [chartType]="chartData.type"
-                *ngIf="isChartReady"></canvas>
+              <!-- <canvas baseChart width="800" height="450" [datasets]="chartData.datasets"
+                [labels]="chartData.labels" [options]="chartData.options" [chartType]="line"
+                ></canvas> -->
+                <canvas baseChart width="800" height="450"
+                  [datasets]="lineChartData"
+                  [labels]="lineChartLabels"
+                  [options]="lineChartOptions"
+                  [colors]="lineChartColors"
+                  [legend]="lineChartLegend"
+                  [chartType]="lineChartType"
+                  [plugins]="lineChartPlugins"
+                  *ngIf="isChartReady">
+              </canvas>
               <br />
               <h4>Results</h4>
               <table class="table table-sm">
@@ -400,7 +410,7 @@ along with this program.If not, see<http://www.gnu.org/licenses/>. -->
                     <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))">{{ result.observationidentifiertext }}</td>
                     <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))">{{ result.observationvalue }}</td>
                     <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))">{{ result.unitstext }}</td>
-                    <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))">{{ result.referencerangelow }} - {{ result.referencerangehigh }}</td>
+                    <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))">{{ result.referencerangelow | number: '1.1-2' }} - {{ result.referencerangehigh | number: '1.1-2' }}</td>
                     <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))">{{ result.abnormalflag }}</td>
                     <td [ngClass]="(result.abnormalflag == 'L' ? 'text-info' : (result.abnormalflag == 'H' ? 'text-danger' : 'text-dark'))"></td>
                   </tr>

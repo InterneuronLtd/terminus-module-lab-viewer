@@ -14,7 +14,7 @@
   },
   "siteSettings": {
     "pdfCssUrl": "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css",
-    "noOfRecordsToDisplay": 5,
+    "noOfRecordsToDisplay": 100,
     "lineChartSettings": {
       "lowReferenceRangeSettings": {
         "label": "Low reference range",

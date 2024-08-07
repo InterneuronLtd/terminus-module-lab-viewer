@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2023  Interneuron Holdings Ltd
+//Copyright(C) 2024  Interneuron Limited
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ export class AuthenticationService {
     let headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded'
     });
-    await this.httpClient.post("https://elht-amalga-arc.xelht.nhs.uk/Synapse/IdentityServer/connect/token", "grant_type=client_credentials&client_id=client&client_secret=secret&scope=dynamicapi.read",
+    await this.httpClient.post("SYNAPSE_IDENTITY_URI/connect/token", "grant_type=client_credentials&client_id=client&client_secret=secret&scope=dynamicapi.read",
       { headers: headers })
       .toPromise().then((resp: any) => {
 

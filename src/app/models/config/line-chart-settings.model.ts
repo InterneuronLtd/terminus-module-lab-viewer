@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2023  Interneuron Holdings Ltd
+//Copyright(C) 2024  Interneuron Limited
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -18,11 +18,11 @@
 //You should have received a copy of the GNU General Public License
 //along with this program.If not, see<http://www.gnu.org/licenses/>.
 //END LICENSE BLOCK 
-import { ChartDataset, ChartOptions } from 'chart.js';
+import { ChartDataSets, ChartOptions } from 'chart.js';
 
 export class LineChartSettings {
-    lowReferenceRangeSettings: ChartDataset;
-    highReferenceRangeSettings: ChartDataset;
-    observationRangeSettings: ChartDataset;
+    lowReferenceRangeSettings: ChartDataSets;
+    highReferenceRangeSettings: ChartDataSets;
+    observationRangeSettings: ChartDataSets;
     chartOptions: ChartOptions;
 }

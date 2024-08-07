@@ -1,7 +1,7 @@
 //BEGIN LICENSE BLOCK 
 //Interneuron Terminus
 
-//Copyright(C) 2023  Interneuron Holdings Ltd
+//Copyright(C) 2024  Interneuron Limited
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -39,6 +39,8 @@ import { CoreNote } from './models/entities/core-note.model';
 import { ChartConfiguration } from './models/chart/chart-configuration.model';
 import { time_ago } from './utilities/time-ago.utility';
 import { sortByProperty } from './utilities/sort-by-property.utility';
+import { ChartDataSets, ChartOptions } from 'chart.js';
+import { Color, Label } from 'ng2-charts';
 
 import { ToastrService, ToastContainerDirective } from 'ngx-toastr';
 import { NotificationService } from 'src/services/notification.service';
@@ -109,6 +111,15 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild("resultHistoryModal") resultHistoryModal: ModalDirective;
   @ViewChild("orderViewsModal") orderViewsModal: ModalDirective;
 
+  // chart properties
+  public lineChartData: ChartDataSets[] = [];
+  public lineChartLabels: Label[] = [];
+  public lineChartOptions: (ChartOptions);
+  public lineChartColors: Color[] = [];
+  public lineChartLegend: boolean = true;  
+  public lineChartType: string = 'line';
+  public lineChartPlugins = [];
+
   //constructor
   constructor(private appService: AppService,
     private apiRequestService: ApirequestService,
@@ -161,10 +172,10 @@ export class AppComponent implements OnInit, OnDestroy {
     // this.orderResultData = [];
     // this.orderCategory = TestData.orderCategory;
     // var value: any = {};
-    // value.contexts = JSON.parse("[{\"person_id\": \"774c605e-c2c6-478d-90e6-0c1230b3b223\"}]");
-    // value.personId = "774c605e-c2c6-478d-90e6-0c1230b3b223"; //George Reed
+    // value.contexts = JSON.parse("[{\"person_id\": \"5bd254ac-5eb9-4a58-9b75-b3312d779fcc\"}]");
+    // value.personId = "5bd254ac-5eb9-4a58-9b75-b3312d779fcc"; //George Reed
     // value.apiService = null;
-    // this.appService.personId = "774c605e-c2c6-478d-90e6-0c1230b3b223";
+    // this.appService.personId = "5bd254ac-5eb9-4a58-9b75-b3312d779fcc";
     // this.appService.loggedInUserId = "gautam@interneuron.org";
     // this.appService.contexts = value.contexts;
     // this.initAppService(value);
@@ -480,7 +491,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   onResultsToChartChange() {
     //console.log(this.selectedNoOfResults);
-    this.onResultHistoryClicked(this.selectedResult);
+    //this.onResultHistoryClicked(this.selectedResult);
+    this.initChartData();
   }
 
   onResultHistoryClicked(result: CoreResult) {  
@@ -517,7 +529,7 @@ export class AppComponent implements OnInit, OnDestroy {
       this.apiRequestService.postRequest(this.appService.labViewerConfig.apiServiceEndpoints.resultHistoryUrl, historyPayload)
         .subscribe((response) => {
           this.resultHistory = response;
-          this.resultHistory.sort(sortByProperty("observationdatetime", 1));
+          this.resultHistory.sort(sortByProperty("observationdatetime", 1));          
           this.initChartData();
           this.isLoading = false;
         })
@@ -525,26 +537,39 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   initChartData() {
-    this.chartData.labels = [];
+    this.lineChartLabels = [];
     let observationValues: number[] = [];
     let highRefRangeData: number[] = [];
     let lowRefRangeData: number[] = []
 
-    this.resultHistory.map((result) => {
-      this.chartData.labels.push(this.datePipe.transform(result.observationdatetime, "dd MMM yyyy HH:mm"));
-      observationValues.push(parseFloat(result.observationvalue));
-      highRefRangeData.push(parseFloat(result.referencerangehigh));
-      lowRefRangeData.push(parseFloat(result.referencerangelow));
+    this.chartData.type = "line";
+
+    let resultCount = 1;
+
+    let results = this.resultHistory.slice(0, parseInt(this.selectedNoOfResults));
+
+    results.map((result) => {
+
+      observationValues.push(Math.round(parseFloat(result.observationvalue) * 100) / 100);
+      highRefRangeData.push(Math.round(parseFloat(result.referencerangehigh) * 100) / 100);
+      lowRefRangeData.push(Math.round(parseFloat(result.referencerangelow) * 100 / 100));      
+
+      this.lineChartLabels.push(this.datePipe.transform(result.observationdatetime, "dd MMM yyyy HH:mm"));      
     });
 
-    this.chartData.datasets = [];
-    this.chartData.datasets.push({
+    let maxValue = Math.max(...observationValues);
+    let maxRangeValue = Math.max(...highRefRangeData);
+    let minValue = Math.min(...observationValues);
+    let minRangeValue = Math.min(...lowRefRangeData);
+
+    this.lineChartData = [];
+    this.lineChartData.push({
       data: lowRefRangeData,
       label: "Low reference range",
       borderColor: "#b0d2d9",
       fill: false
     });
-    this.chartData.datasets.push({
+    this.lineChartData.push({
       data: observationValues,
       label: this.selectedResult.observationidentifiertext + " value",
       borderColor: "#2b2f30",
@@ -552,26 +577,15 @@ export class AppComponent implements OnInit, OnDestroy {
       pointRadius: 6,
       fill: false
     });
-    this.chartData.datasets.push({
+    this.lineChartData.push({
       data: highRefRangeData,
       label: "High Reference Range",
       borderColor: "#e8c3b9",
       fill: false
     });
 
-    this.chartData.type = "line";
-
-    this.chartData.options = {
-      plugins:{
-        title: {
-          display: true,
-          text: this.selectedResult.observationidentifiertext,
-          color: "#806370"
-        },
-        legend: {
-          position: "right"
-        }
-      }
+    this.lineChartOptions = {
+      responsive: true
     };
 
     this.isChartReady = true;
